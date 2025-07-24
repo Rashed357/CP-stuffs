@@ -1,35 +1,41 @@
-class UnionFind {
-public:
-    vector<int> parent, rank;
+struct DSU {
+    vector<int> parent, size;
 
-    UnionFind(int n) {
-        parent.resize(n);
-        rank.resize(n, 1);
-        for (int i = 0; i < n; i++) {
-            parent[i] = i; // Initialize each node as its own parent
+    // Constructor
+    DSU(int n) {
+        parent.resize(n + 1);
+        size.resize(n + 1, 1); // Initially, size of each set is 1
+        for (int i = 1; i <= n; ++i) {
+            parent[i] = i; // Initially, each node is its own parent
         }
     }
 
-    int find(int x) {
-        if (x != parent[x]) {
-            parent[x] = find(parent[x]); // Path compression
-        }
-        return parent[x];
+    // Find with path compression
+    int find(int v) {
+        if (parent[v] == v)
+            return v;
+        return parent[v] = find(parent[v]);
     }
 
-    void unite(int x, int y) {
-        int rootX = find(x);
-        int rootY = find(y);
-
-        if (rootX != rootY) {
-            if (rank[rootX] > rank[rootY]) {
-                parent[rootY] = rootX; // Attach smaller tree under larger tree
-            } else if (rank[rootX] < rank[rootY]) {
-                parent[rootX] = rootY;
-            } else {
-                parent[rootY] = rootX;
-                rank[rootX]++; // Increment rank if both trees have the same rank
-            }
+    // Union by size
+    void unite(int a, int b) {
+        a = find(a);
+        b = find(b);
+        if (a != b) {
+            if (size[a] < size[b])
+                swap(a, b); // Make sure a has bigger size
+            parent[b] = a;
+            size[a] += size[b];
         }
+    }
+
+    // Check if two nodes are in same component
+    bool same(int a, int b) {
+        return find(a) == find(b);
+    }
+
+    // Get size of the component of a node
+    int getSize(int v) {
+        return size[find(v)];
     }
 };
