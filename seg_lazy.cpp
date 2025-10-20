@@ -2,85 +2,82 @@
 using namespace std;
 using ll = long long;
 
-// Clean Segment Tree (Range Add, Range Sum)
-// - 1-based indexing for array a[1..n]
+// Segment Tree (Range Add, Range Sum) - 1-based indexing
 // - Build: O(n)
-// - Range add / Range sum: O(log n) per operation
+// - Range add / Range sum: O(log n) per operation (amortized)
 // - Memory: O(4*n)
 
 struct SegTree {
     int n;
-    vector<ll> sum;   // segment sums
-    vector<ll> lazy;  // pending add for each node
+    vector<ll> st;   // segment tree sums
+    vector<ll> lazy; // pending add for each node
 
-    // construct empty tree for size _n
     SegTree(int _n = 0) { init(_n); }
 
     void init(int _n) {
-        n = max(0, _n);
-        if (n == 0) return;
-        sum.assign(4 * n + 5, 0);
-        lazy.assign(4 * n + 5, 0);
+        n = _n;
+        if (n <= 0) return;
+        st.assign(4*n + 5, 0);
+        lazy.assign(4*n + 5, 0);
     }
 
-    // build from 1-based array a of size n+1 (a[1]..a[n])
+    // build from 1-based array a (size should be n+1, a[1..n])
+    void build(int node, int l, int r, const vector<ll> &a) {
+        if (l == r) {
+            st[node] = a[l];
+            return;
+        }
+        int mid = (l + r) >> 1;
+        build(node<<1, l, mid, a);
+        build(node<<1|1, mid+1, r, a);
+        st[node] = st[node<<1] + st[node<<1|1];
+    }
+
     void build(const vector<ll> &a) {
-        if ((int)a.size() != n + 1) return; // guard
+        if ((int)a.size() == 0) return;
+        // assume a is size n+1 and 1-based
         build(1, 1, n, a);
     }
 
-private:
-    void build(int node, int L, int R, const vector<ll> &a) {
-        if (L == R) {
-            sum[node] = a[L];
-            return;
-        }
-        int mid = (L + R) >> 1;
-        build(node << 1, L, mid, a);
-        build(node << 1 | 1, mid + 1, R, a);
-        sum[node] = sum[node << 1] + sum[node << 1 | 1];
-    }
-
-    // apply pending value to node
-    void apply(int node, int L, int R, ll val) {
-        sum[node] += val * (R - L + 1);
-        if (L != R) lazy[node << 1] += val, lazy[node << 1 | 1] += val;
-    }
-
-    // push lazy down
-    void push(int node, int L, int R) {
+    // push pending lazy value at node to children
+    void push(int node, int l, int r) {
         if (lazy[node] == 0) return;
-        int mid = (L + R) >> 1;
-        apply(node << 1, L, mid, lazy[node]);
-        apply(node << 1 | 1, mid + 1, R, lazy[node]);
+        ll add = lazy[node];
+        st[node] += add * (r - l + 1);
+        if (l != r) {
+            lazy[node<<1] += add;
+            lazy[node<<1|1] += add;
+        }
         lazy[node] = 0;
     }
 
-    // update range [l,r] by adding val
-    void update(int node, int L, int R, int l, int r, ll val) {
-        if (r < L || R < l) return; // no overlap
-        if (l <= L && R <= r) { apply(node, L, R, val); return; }
-        push(node, L, R);
-        int mid = (L + R) >> 1;
-        update(node << 1, L, mid, l, r, val);
-        update(node << 1 | 1, mid + 1, R, l, r, val);
-        sum[node] = sum[node << 1] + sum[node << 1 | 1];
+    // range add: add 'val' to every element in [ql, qr]
+    void update(int node, int l, int r, int ql, int qr, ll val) {
+        push(node, l, r);
+        if (qr < l || r < ql) return; // no overlap
+        if (ql <= l && r <= qr) {
+            lazy[node] += val;
+            push(node, l, r);
+            return;
+        }
+        int mid = (l + r) >> 1;
+        update(node<<1, l, mid, ql, qr, val);
+        update(node<<1|1, mid+1, r, ql, qr, val);
+        st[node] = st[node<<1] + st[node<<1|1];
     }
 
-    // query sum on [l,r]
-    ll query(int node, int L, int R, int l, int r) {
-        if (r < L || R < l) return 0; // no overlap
-        if (l <= L && R <= r) return sum[node];
-        push(node, L, R);
-        int mid = (L + R) >> 1;
-        return query(node << 1, L, mid, l, r) + query(node << 1 | 1, mid + 1, R, l, r);
-    }
-
-public:
-    // public wrappers (1-based indices)
     void range_add(int l, int r, ll val) {
         if (l > r) return;
         update(1, 1, n, l, r, val);
+    }
+
+    // range sum query on [ql, qr]
+    ll query(int node, int l, int r, int ql, int qr) {
+        push(node, l, r);
+        if (qr < l || r < ql) return 0; // no overlap
+        if (ql <= l && r <= qr) return st[node];
+        int mid = (l + r) >> 1;
+        return query(node<<1, l, mid, ql, qr) + query(node<<1|1, mid+1, r, ql, qr);
     }
 
     ll range_sum(int l, int r) {
@@ -89,22 +86,21 @@ public:
     }
 };
 
-// ------------------- Example usage -------------------
-// Input format (typical CP):
+// Example usage (competitive programming style):
+// Input:
 // n
-// a1 a2 ... an   (space separated)
+// a1 a2 ... an  (1-based reading; if you read 0-based, shift to 1-based)
 // q
-// q lines: either
-// 1 l r val   --> add val to a[l..r]
-// 2 l r       --> print sum of a[l..r]
+// queries (type l r [val])
+// type 1: add val to [l, r]
+// type 2: print sum on [l, r]
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
 
-    int n;
-    if (!(cin >> n)) return 0;
-    vector<ll> a(n + 1);
+    int n; if (!(cin >> n)) return 0;
+    vector<ll> a(n+1);
     for (int i = 1; i <= n; ++i) cin >> a[i];
 
     SegTree st(n);
@@ -114,14 +110,13 @@ int main() {
     while (q--) {
         int type; cin >> type;
         if (type == 1) {
-            int l, r; ll v; cin >> l >> r >> v;
-            // if input is 0-based, do: ++l; ++r;
-            st.range_add(l, r, v);
-        } else {
+            int l, r; ll val; cin >> l >> r >> val;
+            // if input is 0-based, do l++, r++ here
+            st.range_add(l, r, val);
+        } else if (type == 2) {
             int l, r; cin >> l >> r;
-            // if input is 0-based, do: ++l; ++r;
-            cout << st.range_sum(l, r) << '
-';
+            // if input is 0-based, do l++, r++ here
+            cout << st.range_sum(l, r) << '\n';
         }
     }
     return 0;
