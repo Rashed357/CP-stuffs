@@ -1,49 +1,55 @@
-// Application: KMP algorithm is used to search for occurrences of a pattern in a text efficiently in O(n + m).
-vector<int> computeLPS(string pattern) {
-    int m = pattern.length();
-    vector<int> lps(m, 0);
-    int len = 0;
-    int i = 1;
+struct KMP {
+    vector<int> pi;
+    string s;
 
-    while (i < m) {
-        if (pattern[i] == pattern[len]) {
-            len++;
-            lps[i] = len;
-            i++;
-        } else {
-            if (len != 0) {
-                len = lps[len - 1]; // Use previously computed LPS values
-            } else {
-                lps[i] = 0;
-                i++;
-            }
+    // build prefix-function for string t
+    void build(const string &t) {
+        s = t;
+        int n = s.size();
+        pi.assign(n, 0);
+        for (int i = 1; i < n; i++) {
+            int j = pi[i - 1];
+            while (j > 0 && s[i] != s[j])
+                j = pi[j - 1];
+            if (s[i] == s[j])
+                j++;
+            pi[i] = j;
         }
     }
-    return lps;
-}
 
-void KMP(string text, string pattern) {
-    int n = text.length();
-    int m = pattern.length();
-
-    vector<int> lps = computeLPS(pattern);
-
-    int i = 0, j = 0;
-    while (i < n) {
-        if (pattern[j] == text[i]) {
-            i++;
-            j++;
-        }
-
-        if (j == m) {
-            cout << "Pattern found at index " << i - j << endl;
-            j = lps[j - 1];
-        } else if (i < n && pattern[j] != text[i]) {
-            if (j != 0) {
-                j = lps[j - 1];
-            } else {
-                i++;
-            }
-        }
+    // longest prefix which is also suffix
+    int longest_prefix_suffix() const {
+        return pi.empty() ? 0 : pi.back();
     }
-}
+
+    // count occurrences of pattern in text
+    int count_occurrences(const string &pat, const string &txt) {
+        string t = pat + "#" + txt;
+        build(t);
+        int cnt = 0;
+        int m = pat.size();
+        for (int x : pi)
+            if (x == m)
+                cnt++;
+        return cnt;
+    }
+
+    // shortest palindrome length by appending to RIGHT
+    int make_palindrome_append_right(const string &str) {
+        string r = str;
+        reverse(r.begin(), r.end());
+        string t = r + "#" + str;
+        build(t);
+        int L = longest_prefix_suffix();
+        return 2 * (int)str.size() - L;
+    }
+
+    // check if string is periodic
+    // returns smallest period length
+    int smallest_period() const {
+        int n = s.size();
+        int k = n - pi.back();
+        if (n % k == 0) return k;
+        return n; // not periodic
+    }
+};
