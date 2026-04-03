@@ -1,0 +1,425 @@
+🧠 Before contest (very important)
+1. Warm up your brain
+Solve 1–2 easy problems before contest
+Just to “activate” your thinking mode
+2. Prepare your template
+
+Since you’re a CP guy, make sure:
+
+fast I/O ready
+typedefs / macros ready
+common stuff (gcd, sieve, etc.)
+
+👉 Goal: zero time wasted on setup
+
+🚀 During contest strategy
+1. First 5–10 minutes = scanning phase
+Read ALL problems quickly
+Mark:
+Easy ✅
+Medium ⚠️
+Hard ❌
+
+👉 Don’t start coding immediately
+👉 Choose the easiest solvable problem first
+
+2. Secure early ACs
+Solve easiest problems first
+Build confidence + scoreboard boost
+
+👉 Psychological advantage is HUGE
+
+3. Time management rule
+
+If stuck:
+
+15–20 min (easy/medium)
+30 min (hard)
+
+👉 STILL stuck → SKIP immediately
+
+Don’t do this:
+
+“Just 5 more minutes…” ❌
+
+That kills contests.
+
+4. Think before coding (VERY IMPORTANT)
+
+Before coding, ask:
+
+What is the constraint?
+Expected complexity?
+Any pattern? (greedy, dp, binary search, graph)
+
+👉 If idea unclear → DON’T code yet
+
+5. Debug smart, not hard
+
+When WA:
+
+Check:
+edge cases
+indexing (0/1-based)
+overflow (use long long)
+empty / single element cases
+
+👉 Don’t randomly change code — be logical
+
+6. Use brute force mindset
+
+If stuck:
+
+Try small examples
+Observe pattern
+Derive logic
+
+👉 Many problems unlock this way
+
+7. Don’t panic
+
+Even if:
+
+You see others solving faster
+You get WA
+
+👉 Stay calm — contest is long game
+
+⚡ Micro tips (these matter A LOT)
+✔ Always test:
+n = 1
+all equal elements
+strictly increasing/decreasing
+max constraints
+✔ Watch for:
+division → zero?
+modulo issues
+off-by-one errors
+✔ Use paper
+
+Sometimes writing:
+
+array
+indices
+transitions
+
+👉 gives clarity instantly
+
+🧩 Mindset
+Think: “I only need one idea to solve this”
+Not: “This is too hard”
+🏁 Final golden rule
+
+👉 Solve what you can, not what you want
+
+Many people fail because:
+
+They try hard problems too early
+
+If you want, I can give you:
+
+🔥 “common patterns cheat sheet”
+🧠 last-minute DP / greedy tricks
+⚡ quick debugging checklist
+
+Just tell me 👍
+
+give
+
+Alright, I’ll give you a compact contest cheat sheet — the kind you can quickly recall during onsite 🔥
+
+🧠 1. Pattern Recognition Cheat Sheet
+
+When you see a problem, match it fast:
+
+📌 If array + “maximize/minimize”
+
+👉 Think:
+
+Greedy
+Prefix sum
+Kadane
+📌 If “subarray” + condition
+
+👉 Think:
+
+Two pointers / sliding window
+Prefix sum + hashmap
+Binary search on answer
+📌 If “exactly k” or “at most k”
+
+👉 Think:
+
+Sliding window
+Prefix sums
+📌 If constraints ~1e5
+
+👉 Target: O(n log n) or O(n)
+
+📌 If constraints ~1e3
+
+👉 O(n^2) is fine
+
+📌 If graph mentioned
+
+👉 Immediately check:
+
+BFS → shortest path (unweighted)
+DFS → connectivity, cycle
+Dijkstra → weighted
+📌 If choices / ways / count
+
+👉 Think:
+
+DP
+Combinatorics
+📌 If “divide into segments”
+
+👉 Think:
+
+DP
+Greedy + binary search
+⚡ 2. Quick DP Patterns
+✔ 1D DP
+dp[i] = best answer till i
+✔ Subsequence DP
+LIS
+LCS
+increasing/decreasing patterns
+✔ Knapsack-type
+for items:
+  for capacity:
+✔ Interval DP (important)
+dp[l][r]
+
+Used in:
+
+merging
+splitting
+palindrome
+🔍 3. Binary Search Trick
+
+If problem says:
+
+maximize minimum
+minimize maximum
+
+👉 Try:
+
+binary search on answer
+
+Check function:
+
+bool ok(x)
+🧪 4. Debugging Checklist (VERY IMPORTANT)
+
+When WA:
+
+✔ Step 1: Edge cases
+n = 1
+all same
+strictly increasing/decreasing
+✔ Step 2: Check:
+overflow → use long long
+division → integer vs float
+modulo negative issue
+✔ Step 3:
+
+Print small test and trace manually
+
+⚠️ 5. Common Mistakes
+❌ forgetting to reset arrays between test cases
+❌ wrong indexing (0 vs 1)
+❌ not clearing vector
+❌ using int instead of long long
+❌ infinite loop in binary search
+🧠 6. Thinking Trick (VERY USEFUL)
+
+If stuck:
+
+👉 Ask:
+
+Can I solve smaller version?
+Can I brute force?
+What changes when I move pointer?
+🧩 7. Emergency Strategy (when stuck badly)
+
+If nothing works:
+
+Move to another problem
+Come back later
+Fresh brain = new idea
+🏁 8. Final Mental Rules
+Don’t marry a problem 💀
+Don’t panic
+Every problem has a pattern
+Small observation = full solution
+
+If you want next level prep, I can give you:
+
+⚔️ “Top 20 most common CP tricks”
+🧠 “How to think like red coder during contest”
+🔥 “Last 10 min optimization hacks”
+
+Just say 👍
+
+give
+
+Alright 🔥 এবার next level — these are the real contest-winning tricks (the kind top coders use silently)
+
+⚔️ Top 20 CP Tricks (high impact)
+1. Contribution Technique
+
+Instead of iterating over all subarrays:
+👉 Count how much each element contributes
+
+Example:
+
+sum of all subarrays
+each A[i] appears (i * (n-i+1)) times
+2. Fix one, move others
+
+If 3 variables → fix 1, solve for 2
+
+👉 Reduces complexity drastically
+
+3. Reverse thinking
+
+Sometimes easier to count:
+👉 total − bad cases
+
+4. Greedy + Proof intuition
+
+Ask:
+👉 “If I take this now, can it hurt later?”
+
+If no → greedy works
+
+5. Two pointers = dynamic subarray
+
+Use when:
+
+contiguous
+condition expands/shrinks
+6. Prefix sum + hashmap
+
+For:
+
+subarray sum = k
+equal prefix conditions
+7. Sort + process
+
+Sorting simplifies:
+
+relative order
+greedy decisions
+8. Coordinate compression
+
+If values large (1e9):
+👉 compress to [1…n]
+
+9. Difference array
+
+For range updates:
+👉 O(1) update instead of O(n)
+
+10. Binary lifting mindset
+
+If repeated jumps:
+👉 precompute powers
+
+11. Bitmask trick
+
+For small n (≤20):
+👉 subset enumeration
+
+12. Meet in the middle
+
+If n ≈ 40:
+👉 split into 2 halves
+
+13. Sliding window with frequency
+
+Use map/array:
+👉 track counts dynamically
+
+14. Monotonic stack
+
+For:
+
+next greater/smaller
+range dominance
+15. Graph modeling
+
+Sometimes array problem = graph problem
+
+16. DP state reduction
+
+Try:
+👉 remove one dimension
+
+17. Math observation
+
+Check:
+
+parity (odd/even)
+gcd properties
+divisibility
+18. Precompute everything possible
+
+Time saved during queries
+
+19. Brute force + optimize
+
+Start naive → improve
+
+20. Pattern spotting from examples
+
+Very underrated:
+👉 examples often reveal solution
+
+🧠 How Red Coders Think
+
+Instead of:
+
+“What is the solution?”
+
+They think:
+
+What is the structure?
+What changes when I move?
+Can I precompute something?
+🔥 Last 10-Minute Hacks (CRITICAL)
+⏱️ When 10 min left:
+✔ If WA:
+check bounds
+check types
+check edge cases
+✔ If stuck:
+
+👉 implement brute (if n small)
+
+✔ If code almost correct:
+
+👉 don’t rewrite — fix minimally
+
+✔ If no solution:
+
+👉 try greedy / observation guess
+
+Sometimes works 😄
+
+🧩 Mental Reset Trick
+
+If brain freezes:
+
+stop 30 seconds
+look away
+come back fresh
+
+👉 এটা surprisingly works
+
+🏁 Final mindset
+Contest = optimization game
+Not solving everything is NORMAL
+2–3 solid solves = good performance
