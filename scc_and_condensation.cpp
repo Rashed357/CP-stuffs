@@ -1,109 +1,237 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-const int MAX = 10005;
+class Kosaraju
+{
+    int n;
+    vector<vector<int>> g, rg;
+    vector<bool> vis;
+    vector<int> order;
 
-vector<int> graph[MAX];      // Original graph
-vector<int> rev_graph[MAX];  // Reversed graph
-vector<bool> visited;
-stack<int> finishing_order;
-int scc_id[MAX];             // scc_id[i] = SCC number of node i
-int total_scc;
+public:
+    vector<int> comp;          // comp[u] = SCC id of u
+    int scc_cnt;
 
-void reset(int n) {
-    for (int i = 1; i <= n; i++) {
-        graph[i].clear();
-        rev_graph[i].clear();
-    }
-    visited.assign(n + 1, false);
-    while (!finishing_order.empty()) finishing_order.pop();
-    total_scc = 0;
-    memset(scc_id, 0, sizeof(scc_id));
-}
-
-void dfs1(int u) {
-    visited[u] = true;
-    for (int v : graph[u]) {
-        if (!visited[v])
-            dfs1(v);
-    }
-    finishing_order.push(u);
-}
-
-void dfs2(int u, int id) {
-    scc_id[u] = id;
-    for (int v : rev_graph[u]) {
-        if (scc_id[v] == 0)
-            dfs2(v, id);
-    }
-}
-
-int kosaraju(int n) {
-    // Step 1: Fill finishing order
-    for (int i = 1; i <= n; i++) {
-        if (!visited[i])
-            dfs1(i);
+    Kosaraju(int n)
+    {
+        init(n);
     }
 
-    // Step 2: Process nodes in reverse finishing order
-    int id = 0;
-    while (!finishing_order.empty()) {
-        int u = finishing_order.top();
-        finishing_order.pop();
-        if (scc_id[u] == 0) {
-            ++id;
-            dfs2(u, id);
-        }
+    void init(int n)
+    {
+        this->n = n;
+
+        g.assign(n + 1, {});
+        rg.assign(n + 1, {});
+        vis.assign(n + 1, false);
+
+        comp.assign(n + 1, 0);
+        order.clear();
+
+        scc_cnt = 0;
     }
-    total_scc = id;
-    return id;
-}
 
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
+    void add_edge(int u, int v)
+    {
+        g[u].push_back(v);
+        rg[v].push_back(u);
+    }
 
-    int T;
-    cin >> T;
+private:
+    void dfs1(int u)
+    {
+        vis[u] = true;
 
-    for (int cs = 1; cs <= T; cs++) {
-        string blank;
-        getline(cin, blank); // read the newline after T
-        getline(cin, blank); // blank line between test cases
-
-        int n, m;
-        cin >> n >> m;
-
-        reset(n);
-
-        for (int i = 0; i < m; i++) {
-            int a, b;
-            cin >> a >> b;
-            graph[a].push_back(b);
-            rev_graph[b].push_back(a);
+        for (int v : g[u])
+        {
+            if (!vis[v])
+                dfs1(v);
         }
 
-        int scc_count = kosaraju(n);
+        order.push_back(u);
+    }
 
-        // Build in-degree of condensation graph
-        vector<int> indegree(total_scc + 1, 0);
-        for (int u = 1; u <= n; u++) {
-            for (int v : graph[u]) {
-                if (scc_id[u] != scc_id[v]) {
-                    indegree[scc_id[v]]++;
-                }
+    void dfs2(int u, int id)
+    {
+        comp[u] = id;
+
+        for (int v : rg[u])
+        {
+            if (comp[v] == 0)
+                dfs2(v, id);
+        }
+    }
+
+public:
+    // Main SCC decomposition
+    int build()
+    {
+        // Step 1
+        fill(vis.begin(), vis.end(), false);
+        order.clear();
+
+        for (int i = 1; i <= n; i++)
+        {
+            if (!vis[i])
+                dfs1(i);
+        }
+
+        // Step 2
+        reverse(order.begin(), order.end());
+
+        fill(comp.begin(), comp.end(), 0);
+        scc_cnt = 0;
+
+        for (int u : order)
+        {
+            if (comp[u] == 0)
+            {
+                ++scc_cnt;
+                dfs2(u, scc_cnt);
             }
         }
 
-        // Count how many SCCs have in-degree 0
-        int answer = 0;
-        for (int i = 1; i <= total_scc; i++) {
-            if (indegree[i] == 0)
-                answer++;
-        }
-
-        cout << "Case " << cs << ": " << answer << "\n";
+        return scc_cnt;
     }
 
-    return 0;
+    // Are u and v in the same SCC?
+    bool same_scc(int u, int v)
+    {
+        return comp[u] == comp[v];
+    }
+
+    // Size of each SCC
+    vector<int> component_sizes()
+    {
+        vector<int> sz(scc_cnt + 1, 0);
+
+        for (int i = 1; i <= n; i++)
+            sz[comp[i]]++;
+
+        return sz;
+    }
+
+    // Build condensation DAG
+    vector<vector<int>> build_condensation()
+    {
+        vector<vector<int>> dag(scc_cnt + 1);
+
+        for (int u = 1; u <= n; u++)
+        {
+            for (int v : g[u])
+            {
+                int cu = comp[u];
+                int cv = comp[v];
+
+                if (cu != cv)
+                    dag[cu].push_back(cv);
+            }
+        }
+
+        return dag;
+    }
+
+    // In-degree of SCCs in condensation DAG
+    vector<int> indegree()
+    {
+        vector<int> in(scc_cnt + 1, 0);
+
+        for (int u = 1; u <= n; u++)
+        {
+            for (int v : g[u])
+            {
+                int cu = comp[u];
+                int cv = comp[v];
+
+                if (cu != cv)
+                    in[cv]++;
+            }
+        }
+
+        return in;
+    }
+
+    // Out-degree of SCCs in condensation DAG
+    vector<int> outdegree()
+    {
+        vector<int> out(scc_cnt + 1, 0);
+
+        for (int u = 1; u <= n; u++)
+        {
+            for (int v : g[u])
+            {
+                int cu = comp[u];
+                int cv = comp[v];
+
+                if (cu != cv)
+                    out[cu]++;
+            }
+        }
+
+        return out;
+    }
+
+    // Number of source SCCs
+    int source_scc_count()
+    {
+        vector<int> in = indegree();
+
+        int ans = 0;
+
+        for (int i = 1; i <= scc_cnt; i++)
+        {
+            if (in[i] == 0)
+                ans++;
+        }
+
+        return ans;
+    }
+
+    // Number of sink SCCs
+    int sink_scc_count()
+    {
+        vector<int> out = outdegree();
+
+        int ans = 0;
+
+        for (int i = 1; i <= scc_cnt; i++)
+        {
+            if (out[i] == 0)
+                ans++;
+        }
+
+        return ans;
+    }
+
+    // Get original graph if needed
+    vector<vector<int>>& graph()
+    {
+        return g;
+    }
+};
+
+void solve()
+{
+    int n, m;
+    cin >> n >> m;
+
+    Kosaraju scc(n);
+
+    for(int i = 0; i < m; i++)
+    {
+        int u, v;
+        cin >> u >> v;
+        scc.add_edge(u, v);
+    }
+
+    scc.build();
+
+    // number of SCCs
+    cout << scc.scc_cnt << '\n';
+
+    // SCC id of node 5
+    cout << scc.comp[5] << '\n';
+
+    // source SCC count
+    cout << scc.source_scc_count() << '\n';
 }
