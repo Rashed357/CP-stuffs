@@ -6,22 +6,21 @@ using ll = long long;
 const int N = 2e5 + 5;
 
 vector<int> adj[N];
-int in[N], out[N];
-int flat[N];
+
+int in[N], out[N], flat[N];
 int timer = 0;
 
-ll val[N];        // original node values
-ll arr[N];        // flattened array
+ll val[N]; // initial value of each node
 
 /*---------------------------------------------------
- | DFS → Build Euler Tour
- | Time: O(n)
+ | Euler Tour
+ | subtree(u) = [in[u], out[u]]
  ---------------------------------------------------*/
 void dfs(int u, int parent) {
     in[u] = ++timer;
     flat[timer] = u;
 
-    for (auto v : adj[u]) {
+    for (int v : adj[u]) {
         if (v == parent) continue;
         dfs(v, u);
     }
@@ -30,104 +29,123 @@ void dfs(int u, int parent) {
 }
 
 /*---------------------------------------------------
- | Fenwick Tree (BIT)
- | Supports:
- | - Point update
- | - Prefix sum
- | Time: O(log n)
+ | Fenwick Tree
  ---------------------------------------------------*/
-ll BIT[N];
+ll BIT1[N], BIT2[N];
 
-void update(int i, ll val) {
+/*
+    Range Add + Range Sum using 2 BITs
+
+    range_add(l, r, x)
+    -> add x to every position in [l, r]
+
+    range_sum(l, r)
+    -> sum of positions in [l, r]
+*/
+
+void update(ll BIT[], int i, ll x) {
     while (i < N) {
-        BIT[i] += val;
+        BIT[i] += x;
         i += i & -i;
     }
 }
 
-ll query(int i) {
+ll query(ll BIT[], int i) {
     ll sum = 0;
+
     while (i > 0) {
         sum += BIT[i];
         i -= i & -i;
     }
+
     return sum;
 }
 
-ll range_query(int l, int r) {
-    return query(r) - query(l - 1);
+/*
+    Add x to [l, r]
+*/
+void range_add(int l, int r, ll x) {
+    if (l > r) return;
+
+    // Difference-array style updates
+    update(BIT1, l, x);
+    update(BIT1, r + 1, -x);
+
+    update(BIT2, l, x * (l - 1));
+    update(BIT2, r + 1, -x * r);
+}
+
+/*
+    Prefix sum [1 ... i]
+*/
+ll prefix_sum(int i) {
+    return query(BIT1, i) * i - query(BIT2, i);
+}
+
+/*
+    Range sum [l ... r]
+*/
+ll range_sum(int l, int r) {
+    if (l > r) return 0;
+
+    return prefix_sum(r) - prefix_sum(l - 1);
 }
 
 /*---------------------------------------------------
- | Build flattened array
+ | Build
  ---------------------------------------------------*/
 void build(int n) {
     for (int i = 1; i <= n; i++) {
         int node = flat[i];
-        arr[i] = val[node];
-        update(i, arr[i]); // initialize BIT
+
+        // Put original node value at Euler position i
+        range_add(i, i, val[node]);
     }
 }
 
 /*---------------------------------------------------
- | QUERY TYPES
+ | 1. Subtree Sum
  ---------------------------------------------------*/
-
-/* 1️⃣ Subtree Sum Query
-   Task: sum of all nodes in subtree of u
-   Time: O(log n)
-*/
 ll subtree_sum(int u) {
-    return range_query(in[u], out[u]);
+    return range_sum(in[u], out[u]);
 }
 
-/* 2️⃣ Point Update
-   Task: update value of node u → new_val
-   Time: O(log n)
-*/
-void point_update(int u, ll new_val) {
-    ll diff = new_val - arr[in[u]];
-    arr[in[u]] = new_val;
-    update(in[u], diff);
-}
-
-/* 3️⃣ Subtree Update (Range Add)
-   Task: add +x to all nodes in subtree of u
-   Trick: use BIT as difference array
-*/
-ll BIT2[N]; // second BIT for range update
-
-void update_range(int i, ll val) {
-    while (i < N) {
-        BIT2[i] += val;
-        i += i & -i;
-    }
-}
-
-ll query_point(int i) {
-    ll sum = 0;
-    while (i > 0) {
-        sum += BIT2[i];
-        i -= i & -i;
-    }
-    return sum;
-}
-
-/* Apply +x to subtree(u) */
+/*---------------------------------------------------
+ | 2. Subtree Add
+ |
+ | Add x to every node in subtree(u)
+ ---------------------------------------------------*/
 void subtree_add(int u, ll x) {
-    update_range(in[u], x);
-    update_range(out[u] + 1, -x);
+    range_add(in[u], out[u], x);
 }
 
-/* Get final value of node u after updates */
+/*---------------------------------------------------
+ | 3. Point Query
+ |
+ | Current value of node u
+ ---------------------------------------------------*/
 ll get_value(int u) {
-    return arr[in[u]] + query_point(in[u]);
+    return range_sum(in[u], in[u]);
 }
 
-/* 4️⃣ Ancestor Check
-   Task: is u ancestor of v?
-   Time: O(1)
-*/
+/*---------------------------------------------------
+ | 4. Point Update
+ |
+ | Set value[u] = new_val
+ ---------------------------------------------------*/
+void point_update(int u, ll new_val) {
+    int p = in[u];
+
+    ll current = range_sum(p, p);
+    ll diff = new_val - current;
+
+    // Add difference only to this position
+    range_add(p, p, diff);
+}
+
+/*---------------------------------------------------
+ | 5. Ancestor Check
+ ---------------------------------------------------*/
 bool isAncestor(int u, int v) {
     return in[u] <= in[v] && out[v] <= out[u];
 }
@@ -137,48 +155,52 @@ bool isAncestor(int u, int v) {
  ---------------------------------------------------*/
 int main() {
     ios::sync_with_stdio(false);
-    cin.tie(NULL);
+    cin.tie(nullptr);
 
     int n;
     cin >> n;
 
-    // input node values
+    // Initial node values
     for (int i = 1; i <= n; i++) {
         cin >> val[i];
     }
 
-    // input tree edges
+    // Tree edges
     for (int i = 1; i < n; i++) {
         int u, v;
         cin >> u >> v;
+
         adj[u].push_back(v);
         adj[v].push_back(u);
     }
 
-    // build Euler Tour
+    // Euler Tour
     dfs(1, 0);
 
-    // build flattened array + BIT
+    // Build Fenwick Trees
     build(n);
 
-    /*------------------------------------------
-     Example Queries (you can modify)
-    ------------------------------------------*/
+    /*
+        Example operations
+    */
 
-    // subtree sum of node 1
-    cout << subtree_sum(1) << "\n";
+    // Sum of subtree(u)
+    cout << subtree_sum(1) << '\n';
 
-    // update node 2 value to 10
-    point_update(2, 10);
-
-    // add +5 to subtree of node 3
+    // Add +5 to every node in subtree(3)
     subtree_add(3, 5);
 
-    // get updated value of node 3
-    cout << get_value(3) << "\n";
+    // Current value of node 3
+    cout << get_value(3) << '\n';
 
-    // check ancestor
-    cout << isAncestor(1, 5) << "\n";
+    // Set node 2 = 10
+    point_update(2, 10);
+
+    // New subtree sum
+    cout << subtree_sum(1) << '\n';
+
+    // Ancestor check
+    cout << isAncestor(1, 5) << '\n';
 
     return 0;
 }
