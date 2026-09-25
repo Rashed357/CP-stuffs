@@ -1,24 +1,44 @@
-#include <iostream>
-#include <vector>
+#include <bits/stdc++.h>
 using namespace std;
 
-// DP solution for the Coin Change Problem
-int coinChangeWays(vector<int>& coins, int amount) {
-    vector<int> dp(amount + 1, 0); // DP table
-    dp[0] = 1; // There is one way to make amount 0 (using no coins)
+// Coins can be used multiple times (Unbounded)
+int minCoinsMultiple(const vector<int>& coins, int amount) {
+    const int INF = amount + 1;
+    vector<int> dp(amount + 1, INF);
+    dp[0] = 0;
 
-    // For each coin, update the number of ways to make every amount
     for (int coin : coins) {
-        for (int i = coin; i <= amount; i++) {
-            dp[i] += dp[i - coin];
+        for (int i = coin; i <= amount; ++i) {
+            if (dp[i - coin] != INF) {
+                dp[i] = min(dp[i], dp[i - coin] + 1);
+            }
         }
     }
-    return dp[amount]; // Return the number of ways to make the amount
+    return dp[amount] == INF ? -1 : dp[amount];
+}
+
+// Each coin can be used at most once (0/1)
+int minCoinsOnce(const vector<int>& coins, int amount) {
+    const int INF = amount + 1;
+    vector<int> dp(amount + 1, INF);
+    dp[0] = 0;
+
+    for (int coin : coins) {
+        for (int i = amount; i >= coin; --i) {
+            if (dp[i - coin] != INF) {
+                dp[i] = min(dp[i], dp[i - coin] + 1);
+            }
+        }
+    }
+    return dp[amount] == INF ? -1 : dp[amount];
 }
 
 int main() {
-    vector<int> coins = {1, 2, 5}; // Available coin denominations
-    int amount = 11; // Total amount
-    cout << "Number of ways to make " << amount << " = " << coinChangeWays(coins, amount) << endl;
+    vector<int> coins = {1, 2, 5};
+    int amount = 11;
+
+    cout << minCoinsMultiple(coins, amount) << "\n";
+    cout << minCoinsOnce(coins, amount) << "\n";
+
     return 0;
 }
