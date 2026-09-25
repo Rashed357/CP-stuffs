@@ -1,51 +1,74 @@
-/*
-struct Job 
-{ 
-    int id;	 // Job Id 
-    int dead; // Deadline of job 
-    int profit; // Profit if job is over before or on deadline 
+#include <bits/stdc++.h>
+using namespace std;
+
+#define int long long
+#define endl '\n'
+
+struct Job {
+    int id;
+    int dead;
+    int profit;
 };
-*/
 
-class Solution 
-{
-    public:
-    //Function to find the maximum profit and the number of jobs done.
-    vector<int> JobScheduling(Job a[], int n) 
-    { 
-        // your code here
-        
-        sort(a,a+n, [](Job a, Job b){return a.profit>b.profit;});
+vector<int> JobScheduling(Job a[], int n) {
 
-   int  mx = 0;
+    // Sort by profit descending
+    sort(a, a + n, [](Job a, Job b) {
+        return a.profit > b.profit;
+    });
 
-   for(int i=0; i<n; i++)
-    mx = max(mx, a[i].dead);
+    // Find maximum deadline
+    int mx = 0;
 
-   vector<int> v(mx+1,0);
+    for(int i = 0; i < n; i++) {
+        mx = max(mx, a[i].dead);
+    }
 
-   int cnt=0,prof=0;
+    // slot[i] = job occupying time slot i
+    vector<int> slot(mx + 1, 0);
 
-   for(int i=0; i<n; i++){
+    int cnt = 0;
+    int prof = 0;
 
-     int last = a[i].dead;
+    for(int i = 0; i < n; i++) {
 
-     for(int j=last; j>0; j--){
+        int last = a[i].dead;
 
-       if(v[j]==0){
+        // Put job in the latest available slot
+        for(int j = last; j >= 1; j--) {
 
-         v[j] = a[i].id;
-         cnt++;
-         prof+=a[i].profit;
-         break;
-       }
-     }
-   }
+            if(slot[j] == 0) {
 
-   vector<int> ans = {cnt,prof};
+                slot[j] = a[i].id;
 
-   return ans;
+                cnt++;
+                prof += a[i].profit;
 
-  }
-  
-};
+                break;
+            }
+        }
+    }
+
+    return {cnt, prof};
+}
+
+int32_t main() {
+
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin >> n;
+
+    Job a[n];
+
+    for(int i = 0; i < n; i++) {
+        cin >> a[i].id >> a[i].dead >> a[i].profit;
+    }
+
+    vector<int> ans = JobScheduling(a, n);
+
+    cout << ans[0] << " " << ans[1] << endl;
+
+    return 0;
+}
